@@ -191,4 +191,45 @@ class AutoServiceGame
         ShowPendingOrders();
     }
 
+    private string GenerateBrokenPart()
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "SELECT Name FROM Parts WHERE IsActive = 1";
+            using (var cmd = new SqlCommand(sql, connection))
+            using (var reader = cmd.ExecuteReader())
+            {
+                List<string> parts = new List<string>();
+                while (reader.Read())
+                {
+                    parts.Add(reader["Name"].ToString());
+                }
+
+                if (parts.Count > 0)
+                {
+                    int index = random.Next(parts.Count);
+                    return parts[index];
+                }
+            }
+        }
+        return "тормозные колодки"; // fallback
+    }
+
+    private int GetPartPrice(string partName)
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "SELECT Price FROM Parts WHERE Name = @Name";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@Name", partName);
+                var result = cmd.ExecuteScalar();
+                return result != null ? Convert.ToInt32(result) : 500;
+            }
+        }
+    }
+
+    private void AcceptOrder(string brokenPart, int repairCost, int clientNumber)
    
