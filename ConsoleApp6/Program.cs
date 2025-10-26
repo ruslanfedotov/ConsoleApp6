@@ -17,7 +17,7 @@ class AutoServiceGame
         connectionString = dbConnectionString;
         money = startMoney;
         warehouse = new Dictionary<string, int>();
-        purchaseOrders = new List<PurchaseOrder>();
+        purchaseOrders = new List<PurchaseOrder>(;
         random = new Random();
 
         InitializeGame();
