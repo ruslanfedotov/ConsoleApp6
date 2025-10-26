@@ -289,4 +289,95 @@ class AutoServiceGame
         Console.WriteLine($"Вы отказали клиенту. Штраф: {penalty} руб.");
     }
 
-   
+    private void ShowPurchaseMenu()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("=== ЗАКУПКА ЗАПЧАСТЕЙ ===");
+            Console.WriteLine($"Баланс: {money} руб.");
+            Console.WriteLine("\nДоступные запчасти:");
+
+            var parts = GetAvailableParts();
+            int i = 1;
+            foreach (var part in parts)
+            {
+                Console.WriteLine($"{i} - {part.Name}: {part.Price} руб./шт.");
+                i++;
+            }
+            Console.WriteLine($"{i} - Вернуться к клиенту");
+
+            Console.Write("\nВыберите деталь для заказа: ");
+            string choice = Console.ReadLine();
+
+            if (int.TryParse(choice, out int partIndex))
+            {
+                if (partIndex == i)
+                    break;
+
+                if (partIndex >= 1 && partIndex <= parts.Count)
+                {
+                    var selectedPart = parts[partIndex - 1];
+                    Console.Write($"Сколько {selectedPart.Name} закупить? ");
+
+                    if (int.TryParse(Console.ReadLine(), out int quantity) && quantity > 0)
+                    {
+                        int totalCost = selectedPart.Price * quantity;
+
+                        if (totalCost <= money)
+                        {
+                            money -= totalCost;
+                            CreatePurchaseOrder(selectedPart.Name, quantity);
+                            SaveGameState();
+                            Console.WriteLine($"Заказ на {quantity} {selectedPart.Name} оформлен! Доставка через 2 клиента.");
+                            Console.WriteLine($"Списано: {totalCost} руб.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Недостаточно денег!");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверное количество!");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Неверный выбор!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неверный ввод!");
+            }
+
+            Console.WriteLine("Нажмите любую клавишу для продолжения...");
+            Console.ReadKey();
+        }
+    }
+
+    private List<Part> GetAvailableParts()
+    {
+        var parts = new List<Part>();
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "SELECT Name, Price FROM Parts WHERE IsActive = 1";
+            using (var cmd = new SqlCommand(sql, connection))
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    parts.Add(new Part
+                    {
+                        Name = reader["Name"].ToString(),
+                        Price = Convert.ToInt32(reader["Price"])
+                    });
+                }
+            }
+        }
+        return parts;
+    }
+
+  
