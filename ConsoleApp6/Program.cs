@@ -279,4 +279,14 @@ class AutoServiceGame
         }
     }
 
-    
+    private void RefuseOrder(int clientNumber)
+    {
+        int penalty = 300;
+        money -= penalty;
+        SaveGameState();
+        LogTransaction(clientNumber, "refusal", -penalty, "refused");
+
+        Console.WriteLine($"Вы отказали клиенту. Штраф: {penalty} руб.");
+    }
+
+   
