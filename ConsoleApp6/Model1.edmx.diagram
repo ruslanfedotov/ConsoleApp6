@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="d5735b0bfc8049a69be7e31400b61dc2" Name="Diagram1">
+        <EntityTypeShape EntityType="AutoServiceGameModel.GameSession" Width="1.5" PointX="0.75" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AutoServiceGameModel.Inventory" Width="1.5" PointX="3" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AutoServiceGameModel.Part" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AutoServiceGameModel.PurchaseOrder" Width="1.5" PointX="3" PointY="4" IsExpanded="true" />
+        <EntityTypeShape EntityType="AutoServiceGameModel.Transaction" Width="1.5" PointX="3" PointY="7.125" IsExpanded="true" />
+        <AssociationConnector Association="AutoServiceGameModel.FK__Inventory__GameI__3E52440B" ManuallyRouted="false" />
+        <AssociationConnector Association="AutoServiceGameModel.FK__PurchaseO__GameI__412EB0B6" ManuallyRouted="false" />
+        <AssociationConnector Association="AutoServiceGameModel.FK__Transacti__GameI__440B1D61" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
