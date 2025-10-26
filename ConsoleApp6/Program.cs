@@ -232,4 +232,51 @@ class AutoServiceGame
     }
 
     private void AcceptOrder(string brokenPart, int repairCost, int clientNumber)
-   
+    {
+        if (warehouse.ContainsKey(brokenPart) && warehouse[brokenPart] > 0)
+        {
+            // Успешный ремонт
+            warehouse[brokenPart]--;
+            money += repairCost;
+
+            // Сохраняем в БД
+            SaveInventory(brokenPart, warehouse[brokenPart]);
+            SaveGameState();
+            LogTransaction(clientNumber, brokenPart, repairCost, "success");
+
+            Console.WriteLine($"Успешный ремонт! Вы заработали {repairCost} руб.");
+        }
+        else
+        {
+            // Неудачный ремонт
+            Console.WriteLine("Нужной детали нет на складе! Производится замена случайной деталью...");
+
+            if (warehouse.Count > 0)
+            {
+                string randomPart = warehouse.Keys.First();
+                warehouse[randomPart]--;
+                if (warehouse[randomPart] == 0)
+                    warehouse.Remove(randomPart);
+
+                int penalty = repairCost + 1000;
+                money -= penalty;
+
+                SaveInventory(randomPart, warehouse.ContainsKey(randomPart) ? warehouse[randomPart] : 0);
+                SaveGameState();
+                LogTransaction(clientNumber, brokenPart, -penalty, "failed");
+
+                Console.WriteLine($"Клиент недоволен! Штраф: {penalty} руб.");
+            }
+            else
+            {
+                int penalty = repairCost + 1500;
+                money -= penalty;
+                SaveGameState();
+                LogTransaction(clientNumber, brokenPart, -penalty, "no_parts");
+
+                Console.WriteLine($"На складе нет деталей! Штраф: {penalty} руб.");
+            }
+        }
+    }
+
+    
