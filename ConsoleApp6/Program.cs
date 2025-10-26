@@ -170,4 +170,25 @@ class AutoServiceGame
         UpdateLocalPurchaseOrders();
     }
 
- 
+    private void ShowStatus()
+    {
+        Console.WriteLine($"\nБаланс: {money} руб.");
+        Console.WriteLine("Склад:");
+
+        if (warehouse.Count == 0)
+        {
+            Console.WriteLine("  (пусто)");
+        }
+        else
+        {
+            foreach (var part in warehouse)
+            {
+                Console.WriteLine($"  {part.Key}: {part.Value} шт.");
+            }
+        }
+
+        // Показываем ожидаемые поставки
+        ShowPendingOrders();
+    }
+
+   
