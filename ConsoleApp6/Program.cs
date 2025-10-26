@@ -122,4 +122,52 @@ class AutoServiceGame
         }
     }
 
-    
+    private void ProcessDeliveries()
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+
+            // Получаем заказы, готовые к доставке
+            string sql = "SELECT * FROM PurchaseOrders WHERE GameId = @GameId AND DeliveryCounter <= 0";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@GameId", gameId);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string partName = reader["PartName"].ToString();
+                        int quantity = Convert.ToInt32(reader["Quantity"]);
+                        int orderId = Convert.ToInt32(reader["Id"]);
+
+                        if (warehouse.ContainsKey(partName))
+                            warehouse[partName] += quantity;
+                        else
+                            warehouse[partName] = quantity;
+
+                        Console.WriteLine($"✓ Доставлены {quantity} {partName}");
+
+                        // Обновляем инвентарь в БД
+                        SaveInventory(partName, warehouse[partName]);
+
+                        // Удаляем выполненный заказ
+                        DeletePurchaseOrder(orderId);
+                    }
+                }
+            }
+
+            // Уменьшаем счетчик доставки для остальных заказов
+            sql = "UPDATE PurchaseOrders SET DeliveryCounter = DeliveryCounter - 1 WHERE GameId = @GameId AND DeliveryCounter > 0";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@GameId", gameId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // Обновляем локальный список заказов
+        UpdateLocalPurchaseOrders();
+    }
+
+ 
