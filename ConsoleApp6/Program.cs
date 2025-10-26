@@ -454,4 +454,112 @@ class AutoServiceGame
         }
     }
 
-  
+    private void LogTransaction(int clientNumber, string partName, int amount, string status)
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "INSERT INTO Transactions (GameId, ClientNumber, PartName, Amount, Status, TransactionDate) VALUES (@GameId, @ClientNumber, @PartName, @Amount, @Status, GETDATE())";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@GameId", gameId);
+                cmd.Parameters.AddWithValue("@ClientNumber", clientNumber);
+                cmd.Parameters.AddWithValue("@PartName", partName);
+                cmd.Parameters.AddWithValue("@Amount", amount);
+                cmd.Parameters.AddWithValue("@Status", status);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+
+    private void UpdateLocalPurchaseOrders()
+    {
+        purchaseOrders.Clear();
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "SELECT PartName, Quantity, DeliveryCounter FROM PurchaseOrders WHERE GameId = @GameId";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@GameId", gameId);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        purchaseOrders.Add(new PurchaseOrder(
+                            reader["PartName"].ToString(),
+                            Convert.ToInt32(reader["Quantity"]),
+                            Convert.ToInt32(reader["DeliveryCounter"])
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    private void ShowPendingOrders()
+    {
+        if (purchaseOrders.Count > 0)
+        {
+            Console.WriteLine("\nОжидаются поставки:");
+            foreach (var order in purchaseOrders)
+            {
+                Console.WriteLine($"  {order.PartName}: {order.Quantity} шт. (через {order.DeliveryCounter} клиентов)");
+            }
+        }
+    }
+
+    private void DeletePurchaseOrder(int orderId)
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "DELETE FROM PurchaseOrders WHERE Id = @Id";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@Id", orderId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+}
+
+class PurchaseOrder
+{
+    public string PartName { get; set; }
+    public int Quantity { get; set; }
+    public int DeliveryCounter { get; set; }
+
+    public PurchaseOrder(string partName, int quantity, int deliveryCounter)
+    {
+        PartName = partName;
+        Quantity = quantity;
+        DeliveryCounter = deliveryCounter;
+    }
+}
+
+class Part
+{
+    public string Name { get; set; }
+    public int Price { get; set; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string connectionString = "Server=localhost;Database=AutoServiceGame;Integrated Security=true;";
+
+        try
+        {
+            Console.WriteLine("Добро пожаловать в автосервис!");
+            AutoServiceGame game = new AutoServiceGame(5000, connectionString);
+            game.RunGame();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+            Console.WriteLine("Проверьте подключение к базе данных SQL Server");
+        }
+    }
+}
