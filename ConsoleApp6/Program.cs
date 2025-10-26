@@ -17,7 +17,7 @@ class AutoServiceGame
         connectionString = dbConnectionString;
         money = startMoney;
         warehouse = new Dictionary<string, int>();
-        purchaseOrders = new List<PurchaseOrder>(;
+        purchaseOrders = new List<PurchaseOrder>();
         random = new Random();
 
         InitializeGame();
@@ -60,4 +60,66 @@ class AutoServiceGame
         }
     }
 
-   
+    public void RunGame()
+    {
+        Console.WriteLine("=== АВТОСЕРВИС ===");
+        Console.WriteLine($"Начальный баланс: {money} руб.");
+        Console.WriteLine("Нажмите любую клавишу для начала обслуживания клиентов...");
+        Console.ReadKey();
+
+        int clientNumber = 1;
+
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine($"=== КЛИЕНТ №{clientNumber} ===");
+
+            // Обрабатываем доставки запчастей
+            ProcessDeliveries();
+
+            // Показываем текущее состояние
+            ShowStatus();
+
+            // Генерируем поломку
+            string brokenPart = GenerateBrokenPart();
+            int repairCost = GetPartPrice(brokenPart) + random.Next(200, 800);
+            Console.WriteLine($"\nПоломка: {brokenPart}");
+            Console.WriteLine($"Стоимость ремонта: {repairCost} руб.");
+
+            // Предлагаем варианты действий
+            Console.WriteLine("\nВаши действия:");
+            Console.WriteLine("1 - Взять заказ (если есть деталь на складе)");
+            Console.WriteLine("2 - Отказать клиенту (штраф 300 руб.)");
+            Console.WriteLine("3 - Закупить запчасти");
+            Console.WriteLine("4 - Выйти из игры");
+
+            string choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    AcceptOrder(brokenPart, repairCost, clientNumber);
+                    break;
+                case "2":
+                    RefuseOrder(clientNumber);
+                    break;
+                case "3":
+                    ShowPurchaseMenu();
+                    break;
+                case "4":
+                    SaveGameState();
+                    Console.WriteLine($"Игра завершена! Итоговый баланс: {money} руб.");
+                    return;
+                default:
+                    Console.WriteLine("Неверный выбор! Нажмите любую клавишу для продолжения...");
+                    Console.ReadKey();
+                    continue;
+            }
+
+            clientNumber++;
+            Console.WriteLine("Нажмите любую клавишу для следующего клиента...");
+            Console.ReadKey();
+        }
+    }
+
+    
