@@ -380,4 +380,78 @@ class AutoServiceGame
         return parts;
     }
 
+    private void CreatePurchaseOrder(string partName, int quantity)
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "INSERT INTO PurchaseOrders (GameId, PartName, Quantity, DeliveryCounter, OrderDate) VALUES (@GameId, @PartName, @Quantity, 2, GETDATE())";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@GameId", gameId);
+                cmd.Parameters.AddWithValue("@PartName", partName);
+                cmd.Parameters.AddWithValue("@Quantity", quantity);
+                cmd.ExecuteNonQuery();
+            }
+        }
+        UpdateLocalPurchaseOrders();
+    }
+
+    private void SaveInventory(string partName, int quantity)
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+
+            // Проверяем существующую запись
+            string checkSql = "SELECT COUNT(*) FROM Inventory WHERE GameId = @GameId AND PartName = @PartName";
+            using (var checkCmd = new SqlCommand(checkSql, connection))
+            {
+                checkCmd.Parameters.AddWithValue("@GameId", gameId);
+                checkCmd.Parameters.AddWithValue("@PartName", partName);
+                int exists = (int)checkCmd.ExecuteScalar();
+
+                if (exists > 0)
+                {
+                    // Обновляем существующую
+                    string updateSql = "UPDATE Inventory SET Quantity = @Quantity WHERE GameId = @GameId AND PartName = @PartName";
+                    using (var updateCmd = new SqlCommand(updateSql, connection))
+                    {
+                        updateCmd.Parameters.AddWithValue("@Quantity", quantity);
+                        updateCmd.Parameters.AddWithValue("@GameId", gameId);
+                        updateCmd.Parameters.AddWithValue("@PartName", partName);
+                        updateCmd.ExecuteNonQuery();
+                    }
+                }
+                else
+                {
+                    // Вставляем новую
+                    string insertSql = "INSERT INTO Inventory (GameId, PartName, Quantity) VALUES (@GameId, @PartName, @Quantity)";
+                    using (var insertCmd = new SqlCommand(insertSql, connection))
+                    {
+                        insertCmd.Parameters.AddWithValue("@GameId", gameId);
+                        insertCmd.Parameters.AddWithValue("@PartName", partName);
+                        insertCmd.Parameters.AddWithValue("@Quantity", quantity);
+                        insertCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+    }
+
+    private void SaveGameState()
+    {
+        using (var connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            string sql = "UPDATE GameSessions SET CurrentMoney = @CurrentMoney, LastUpdate = GETDATE() WHERE Id = @Id";
+            using (var cmd = new SqlCommand(sql, connection))
+            {
+                cmd.Parameters.AddWithValue("@CurrentMoney", money);
+                cmd.Parameters.AddWithValue("@Id", gameId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+
   
